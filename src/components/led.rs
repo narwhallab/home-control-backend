@@ -28,6 +28,7 @@ impl Device for LEDDevice {
         if let Some(data) = data.get("status") {
             let connection = Self::connect().await;
             connection.write(data.as_bytes()).await.unwrap();
+            connection.disconnect().await;
         }
     }
 
