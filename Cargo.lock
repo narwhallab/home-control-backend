@@ -1154,9 +1154,9 @@ dependencies = [
 
 [[package]]
 name = "narwhal-tooth"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb3b7b9ab7499ccd1dfc7095e16c8034783393c5b4670e019246df19845db7ad"
+checksum = "060315a6dbf0e9b03089671e7970db74c39ba999fc4ce984ac696bd1abee7197"
 dependencies = [
  "async_once",
  "btleplug",

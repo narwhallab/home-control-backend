@@ -4,7 +4,7 @@ use crate::{Device, ControlOptions};
 
 #[derive(Clone)]
 pub struct LEDDevice {
-    //connection: BluetoothConnection
+    connection: BluetoothConnection
 }
 
 impl LEDDevice {
@@ -15,9 +15,9 @@ impl LEDDevice {
     }
 
     pub async fn new() -> Self {
-        //let connection = Self::connect().await;
+        let connection = Self::connect().await;
         LEDDevice {
-          //  connection
+            connection
         }
     }
 }
@@ -26,14 +26,12 @@ impl LEDDevice {
 impl Device for LEDDevice {
     async fn apply(&self, data: &HashMap<String, String>) {
         if let Some(data) = data.get("status") {
-            let connection = Self::connect().await;
-            connection.write(data.as_bytes()).await.unwrap();
-            connection.disconnect().await;
+            self.connection.write(data.as_bytes()).await.unwrap();
         }
     }
 
     async fn finish(&self) {
-      //  self.connection.disconnect().await;
+        self.connection.disconnect().await;
     }
 
     fn get_name(&self) -> &str {
