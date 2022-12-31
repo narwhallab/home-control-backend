@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use mufin_rs::{scan_bluetooth, connect_bluetooth, bluetooth::BluetoothConnection};
+use narwhal_tooth::{scan_bluetooth, connect_bluetooth, bluetooth::BluetoothConnection};
 use crate::{Device, ControlOptions};
 
 #[derive(Clone)]

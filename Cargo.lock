@@ -948,7 +948,7 @@ dependencies = [
  "dyn-clone",
  "gethostname",
  "lazy_static",
- "mufin-rs",
+ "narwhal-tooth",
  "serde",
  "serde_json",
  "sha2",
@@ -1153,8 +1153,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "mufin-rs"
+name = "narwhal-tooth"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb3b7b9ab7499ccd1dfc7095e16c8034783393c5b4670e019246df19845db7ad"
 dependencies = [
  "async_once",
  "btleplug",
