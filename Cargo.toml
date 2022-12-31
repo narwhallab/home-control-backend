@@ -1,0 +1,21 @@
+[package]
+name = "home_control_backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-cors = "0.6.4"
+actix-files = "0.6.2"
+actix-session = { version = "0.7.2", features = ["cookie-session"] }
+actix-web = "4.2.1"
+anyhow = "1.0.68"
+async-trait = "0.1.60"
+dyn-clone = "1.0.10"
+gethostname = "0.4.1"
+lazy_static = "1.4.0"
+mufin-rs = { path = "../mufin" }
+serde = "1.0.152"
+serde_json = "1.0.91"
+sha2 = "0.10.6"
