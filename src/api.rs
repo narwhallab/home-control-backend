@@ -2,14 +2,12 @@ use std::collections::HashMap;
 use anyhow::Result;
 use serde::{Serialize, Deserialize};
 
-use crate::device::Device;
-
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct ControlOptions {
-    name: String,
+    pub name: String,
     #[serde(rename = "type")]
-    opt_type: String,
-    values: Vec<String>
+    pub opt_type: String,
+    pub values: Vec<String>
 }
 
 impl ControlOptions {
@@ -33,25 +31,4 @@ pub fn validate_control_data(control_options: Vec<ControlOptions>, data: &HashMa
     return Ok(())
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-/// Data of the current server
-pub struct DeviceData {
-    id: u32,
-    title: String,
-    desc: String,
-    img: String,
-    control_options: Vec<ControlOptions>
-}
-
-impl DeviceData {
-    pub fn from_data(id: u32, device: &Box<dyn Device>) -> DeviceData {
-        DeviceData { 
-            id,
-            title: device.get_name().to_string(),
-            desc: device.get_desc().to_string(),
-            img: device.get_img().to_string(),
-            control_options: device.get_ctrl_opts()
-        }
-    }
-}
+// ! changed DeviceData !! Check the frontend part

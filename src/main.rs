@@ -1,38 +1,45 @@
 pub mod device;
 pub mod api;
 
-mod routes;
 mod components;
+mod verifier;
 
 use std::{collections::HashMap, sync::Mutex};
-use actix_session::{SessionMiddleware, storage::CookieSessionStore};
-use actix_web::{App, HttpServer, cookie::Key};
-use api::ControlOptions;
+use actix_web::{App, HttpServer, get};
 use device::load;
-use routes::configure;
 use lazy_static::lazy_static;
-use crate::device::Device;
+use crate::{device::Device, verifier::AuthToken};
 
 const PASSWORD: &str = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8";
 
 lazy_static! {
-    static ref DEVICES: Mutex<HashMap<u32, Box<dyn Device>>> = Mutex::new(HashMap::new());
+    static ref DEVICES: Mutex<HashMap<String, Device>> = Mutex::new(HashMap::new());
 }
 
 /// Add your devices here
-async fn load_devices() {
-    load(Box::new(components::LEDDevice::new().await));
+async fn load_hubs() {
+    load(Box::new(components::MainHub::new().await));
+}
+
+#[get("/normal")]
+async fn normal() -> &'static str {
+    "Normal Request"
+}
+
+#[get("/secure")]
+async fn secure(_token: AuthToken) -> &'static str {
+    "Secure Request"
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let session_key = Key::generate();
-    load_devices().await;
+    load_hubs().await;
 
     HttpServer::new(move || {
         App::new()
-            .configure(configure)
-            .wrap(SessionMiddleware::builder(CookieSessionStore::default(), session_key.clone()).cookie_secure(false).build())
+            .service(verifier::login)
+            .service(normal)
+            .service(secure)
     })
     .bind(("0.0.0.0", 8080))?
     .run()
