@@ -1,35 +1,23 @@
-pub mod device;
-pub mod api;
-
+mod api;
 mod components;
-mod verifier;
-mod util;
 
 use std::{collections::HashMap, sync::Mutex};
-use actix_web::{App, HttpServer, get};
-use device::load;
+use actix_web::{App, HttpServer};
+use api::{device::{load, Hub, Device}, verifier, routes};
+use components::mainhub::MainHub;
 use lazy_static::lazy_static;
-use crate::{device::Device, verifier::AuthToken};
 
-const PASSWORD: &str = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8";
+const PASSWORD: &str = "ca6d31de4acdab8e2ce8aadaeeb44454ba0dcf2d5c188d6d531641bea1f987ae";
+const HOSTNAME: &str = "Dolphin2410's Home PC";
 
 lazy_static! {
     static ref DEVICES: Mutex<HashMap<String, Device>> = Mutex::new(HashMap::new());
+    static ref HUBS: Mutex<Vec<Box<dyn Hub>>> = Mutex::new(vec![]);
 }
 
 /// Add your devices here
 async fn load_hubs() {
-    load(Box::new(components::MainHub::new().await));
-}
-
-#[get("/normal")]
-async fn normal() -> &'static str {
-    "Normal Request"
-}
-
-#[get("/secure")]
-async fn secure(_token: AuthToken) -> &'static str {
-    "Secure Request"
+    load(Box::new(MainHub::new().await));
 }
 
 #[actix_web::main]
@@ -39,8 +27,11 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .service(verifier::login)
-            .service(normal)
-            .service(secure)
+            .service(routes::list_devices)
+            .service(routes::server_info)
+            .service(routes::control_device)
+            .service(components::led::test)
+            .service(actix_files::Files::new("/", "./public"))
     })
     .bind(("0.0.0.0", 8080))?
     .run()

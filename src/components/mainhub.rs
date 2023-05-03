@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use narwhal_tooth::{scan_bluetooth, bluetooth::{BluetoothConnection, connect_peripheral}};
-use crate::{Device, device::Hub};
+use crate::api::device::{Device, Hub};
 
-use super::new_led_device;
+use super::led::new_led_device;
 
 #[derive(Clone)]
 pub struct MainHub {

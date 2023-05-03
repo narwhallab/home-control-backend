@@ -1,4 +1,6 @@
-use crate::{device::Device, api::ControlOptions};
+use std::collections::HashMap;
+use actix_web::{Responder, get};
+use crate::api::{device::{Device, access_hub}, copts::ControlOptions, verifier::AuthToken};
 
 pub fn new_led_device() -> Device {
     Device {
@@ -10,4 +12,13 @@ pub fn new_led_device() -> Device {
             ControlOptions::new_picker("status", vec!["on", "off"])
         ]
     }
+}
+
+#[get("/led/test")]
+pub async fn test(_auth: AuthToken) -> impl Responder {
+    let device = new_led_device();
+    let mut data = HashMap::new();
+    data.insert("status".to_string(), "on".to_string());
+    access_hub(device, &data).await.unwrap();
+    "done"
 }

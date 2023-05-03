@@ -4,8 +4,8 @@ use actix_web::{Responder, HttpResponse, web::Json, post, HttpRequest, FromReque
 use jsonwebtoken::{Header, EncodingKey, get_current_timestamp, Validation, Algorithm, DecodingKey};
 use serde::{Serialize, Deserialize};
 use serde_json::json;
-
-use crate::{PASSWORD, util::encrypt};
+use super::util::encrypt;
+use crate::{PASSWORD};
 
 pub struct AuthToken;
 
