@@ -1,21 +1,19 @@
 use std::future::{Ready, ready};
 
 use actix_web::{Responder, HttpResponse, web::Json, post, HttpRequest, FromRequest, error::ErrorUnauthorized};
-use jsonwebtoken::{Header, EncodingKey, get_current_timestamp, Validation, Algorithm, DecodingKey, TokenData};
+use jsonwebtoken::{Header, EncodingKey, get_current_timestamp, Validation, Algorithm, DecodingKey};
 use serde::{Serialize, Deserialize};
 use serde_json::json;
 
-use crate::PASSWORD;
+use crate::{PASSWORD, util::encrypt};
 
-pub struct AuthToken {
-
-}
+pub struct AuthToken;
 
 impl FromRequest for AuthToken {
     type Error = actix_web::Error;
     type Future = Ready<Result<Self, Self::Error>>;
 
-    fn from_request(req: &HttpRequest, payload: &mut actix_web::dev::Payload) -> Self::Future {
+    fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
         let auth_header = req.headers().get("Authorization");
         if auth_header.is_none() {
             return ready(Err(ErrorUnauthorized("No authorization header")));
@@ -26,11 +24,10 @@ impl FromRequest for AuthToken {
             return ready(Err(ErrorUnauthorized("Invalid authorization header")));
         }
     
-        if let Ok(data) = jsonwebtoken::decode::<Claims>(&header_str.replace("bearer ", ""), &DecodingKey::from_secret("super-secret-key".as_ref()), &Validation::new(Algorithm::HS256)) {
-            return ready(Ok(AuthToken {}))
+        match jsonwebtoken::decode::<Claims>(&header_str.replace("bearer ", ""), &DecodingKey::from_secret("super-secret-key".as_ref()), &Validation::new(Algorithm::HS256)) {
+            Ok(_data) => ready(Ok(AuthToken)),
+            _ => ready(Err(ErrorUnauthorized("Invalid token")))
         }
-    
-        return ready(Err(ErrorUnauthorized("Invalid token")))
     }
 }
 
@@ -45,9 +42,11 @@ pub struct Claims {
     pub exp: u64,
 }
 
+
+
 #[post("/login")]
 pub async fn login(req: Json<LoginRequest>) -> impl Responder {
-    if req.password != PASSWORD {
+    if encrypt(&req.password) != PASSWORD {
         return HttpResponse::Unauthorized().json(json! {
             {
                 "error": "Invalid password"

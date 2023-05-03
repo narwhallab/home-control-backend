@@ -3,6 +3,7 @@ pub mod api;
 
 mod components;
 mod verifier;
+mod util;
 
 use std::{collections::HashMap, sync::Mutex};
 use actix_web::{App, HttpServer, get};
