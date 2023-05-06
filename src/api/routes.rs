@@ -1,9 +1,9 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
-use actix_web::{Responder, get, HttpResponse, post, web::Json};
+use actix_web::{Responder, get, HttpResponse, post, web::Json, HttpRequest};
 use serde_json::json;
 
-use crate::{DEVICES, HOSTNAME, api::device::{search_device, access_hub}};
+use crate::{DEVICES, HOSTNAME, api::{device::{search_device, access_hub}, verifier::CookieToken}};
 
 use super::verifier::AuthToken;
 
@@ -38,4 +38,20 @@ async fn control_device(_auth: AuthToken, req: Json<DeviceControlRequest>) -> im
             "status": "ok"
         }
     })
+}
+
+#[get("/login")]
+async fn client_login() -> impl Responder {
+    let frontend_path = PathBuf::from("./build/index.html");
+    actix_files::NamedFile::open(frontend_path).unwrap()
+}
+
+#[get("/")]
+async fn client_home(cookie: CookieToken, req: HttpRequest) -> impl Responder {
+    if cookie.authorized {
+        let frontend_path = PathBuf::from("./build/index.html");
+        actix_files::NamedFile::open(frontend_path).unwrap().into_response(&req)
+    } else {
+        HttpResponse::PermanentRedirect().append_header(("Location", "/login")).finish()
+    }
 }

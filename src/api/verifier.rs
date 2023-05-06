@@ -1,13 +1,17 @@
 use std::future::{Ready, ready};
 
-use actix_web::{Responder, HttpResponse, web::Json, post, HttpRequest, FromRequest, error::ErrorUnauthorized};
+use actix_web::{Responder, HttpResponse, web::{Json, Form}, post, HttpRequest, FromRequest, error::ErrorUnauthorized, http::header, cookie::{Cookie, CookieJar}};
 use jsonwebtoken::{Header, EncodingKey, get_current_timestamp, Validation, Algorithm, DecodingKey};
 use serde::{Serialize, Deserialize};
 use serde_json::json;
-use super::util::encrypt;
-use crate::{PASSWORD};
+use super::util::{encrypt, parse_cookies};
+use crate::PASSWORD;
 
 pub struct AuthToken;
+
+pub struct CookieToken {
+    pub authorized: bool
+}
 
 impl FromRequest for AuthToken {
     type Error = actix_web::Error;
@@ -19,6 +23,8 @@ impl FromRequest for AuthToken {
             return ready(Err(ErrorUnauthorized("No authorization header")));
         }
         
+
+        // todo fix bearer, Bearer, ... caps
         let header_str = auth_header.unwrap().to_str().unwrap();
         if !header_str.starts_with("bearer ") {
             return ready(Err(ErrorUnauthorized("Invalid authorization header")));
@@ -27,6 +33,30 @@ impl FromRequest for AuthToken {
         match jsonwebtoken::decode::<Claims>(&header_str.replace("bearer ", ""), &DecodingKey::from_secret("super-secret-key".as_ref()), &Validation::new(Algorithm::HS256)) {
             Ok(_data) => ready(Ok(AuthToken)),
             _ => ready(Err(ErrorUnauthorized("Invalid token")))
+        }
+    }
+}
+
+impl FromRequest for CookieToken {
+    type Error = actix_web::Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
+        let cookie_header = req.headers().get(header::COOKIE);
+        if cookie_header.is_none() {
+            return ready(Ok(CookieToken { authorized: false }));
+        }
+        
+        let header_str = cookie_header.unwrap().to_str().unwrap();
+        let cookies = parse_cookies(header_str);
+
+        if !cookies.contains_key("access_key") {
+            return ready(Ok(CookieToken { authorized: false }));
+        }
+    
+        match jsonwebtoken::decode::<Claims>(&cookies["access_key"], &DecodingKey::from_secret("super-secret-key".as_ref()), &Validation::new(Algorithm::HS256)) {
+            Ok(_data) => ready(Ok(CookieToken { authorized: true })),
+            _ => ready(Ok(CookieToken { authorized: false }))
         }
     }
 }
@@ -45,7 +75,7 @@ pub struct Claims {
 
 
 #[post("/login")]
-pub async fn login(req: Json<LoginRequest>) -> impl Responder {
+pub async fn login(req: Form<LoginRequest>) -> impl Responder {
     if encrypt(&req.password) != PASSWORD {
         return HttpResponse::Unauthorized().json(json! {
             {
@@ -65,9 +95,7 @@ pub async fn login(req: Json<LoginRequest>) -> impl Responder {
         &EncodingKey::from_secret("super-secret-key".as_ref())).unwrap();
 
 
-    HttpResponse::Ok().append_header(("Set-Cookie", format!("access_key={}", token))).json(json! {
-        {
-            "token": token
-        }
-    })
+    HttpResponse::Found()
+        .append_header(("Set-Cookie", format!("access_key={}", token)))
+        .append_header(("Location", "/")).finish()
 }
