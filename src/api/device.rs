@@ -6,9 +6,11 @@ use crate::{DEVICES, api::copts::ControlOptions, HUBS};
 
 #[async_trait::async_trait]
 pub trait Hub: Sync + Send + DynClone {
-    async fn apply(&self, target: Device, data: &HashMap<String, String>);
+    async fn apply(&mut self, target: Device, data: &HashMap<String, String>) -> Result<(), Box<dyn Error>>;
 
-    async fn finish(&self);
+    async fn finish(&self) -> Result<(), Box<dyn Error>>;
+
+    async fn is_valid(&self) -> bool;
 
     fn get_name(&self) -> &str { "<no_name>" }
 
@@ -32,11 +34,11 @@ pub async fn search_device(uuid: String) -> Device {
 }
 
 pub(crate) async fn access_hub(device: Device, data: &HashMap<String, String>) -> Result<(), Box<dyn Error>> {
-    let hubs = HUBS.lock().unwrap();
-    for hub in hubs.iter() {
+    let mut hubs = HUBS.lock().unwrap();
+    for hub in hubs.iter_mut() {
         for hub_device in hub.get_devices() {
             if &hub_device.id == &device.id {
-                hub.apply(device.clone(), data).await;
+                hub.apply(device.clone(), data).await?;
                 return Ok(())
             }
         }

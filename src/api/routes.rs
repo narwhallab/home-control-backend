@@ -41,9 +41,13 @@ async fn control_device(_auth: AuthToken, req: Json<DeviceControlRequest>) -> im
 }
 
 #[get("/login")]
-async fn client_login() -> impl Responder {
-    let frontend_path = PathBuf::from("./build/index.html");
-    actix_files::NamedFile::open(frontend_path).unwrap()
+async fn client_login(cookie: CookieToken, req: HttpRequest) -> impl Responder {
+    if !cookie.authorized {
+        let frontend_path = PathBuf::from("./build/index.html");
+        actix_files::NamedFile::open(frontend_path).unwrap().into_response(&req)
+    } else {
+        HttpResponse::PermanentRedirect().append_header(("Location", "/")).finish()
+    }
 }
 
 #[get("/")]
@@ -54,4 +58,11 @@ async fn client_home(cookie: CookieToken, req: HttpRequest) -> impl Responder {
     } else {
         HttpResponse::PermanentRedirect().append_header(("Location", "/login")).finish()
     }
+}
+
+// logout system
+#[get("/logout")]
+async fn client_logout() -> impl Responder {
+    // todo: remove cookie, access_key for user
+    HttpResponse::PermanentRedirect().append_header(("Location", "/login")).finish()
 }

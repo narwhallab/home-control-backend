@@ -1,6 +1,6 @@
 use std::future::{Ready, ready};
 
-use actix_web::{Responder, HttpResponse, web::{Json, Form}, post, HttpRequest, FromRequest, error::ErrorUnauthorized, http::header, cookie::{Cookie, CookieJar}};
+use actix_web::{Responder, HttpResponse, web:: Form, post, HttpRequest, FromRequest, error::ErrorUnauthorized, http::header};
 use jsonwebtoken::{Header, EncodingKey, get_current_timestamp, Validation, Algorithm, DecodingKey};
 use serde::{Serialize, Deserialize};
 use serde_json::json;
@@ -26,11 +26,11 @@ impl FromRequest for AuthToken {
 
         // todo fix bearer, Bearer, ... caps
         let header_str = auth_header.unwrap().to_str().unwrap();
-        if !header_str.starts_with("bearer ") {
+        if header_str[..=6].to_lowercase() != "bearer " {
             return ready(Err(ErrorUnauthorized("Invalid authorization header")));
         }
     
-        match jsonwebtoken::decode::<Claims>(&header_str.replace("bearer ", ""), &DecodingKey::from_secret("super-secret-key".as_ref()), &Validation::new(Algorithm::HS256)) {
+        match jsonwebtoken::decode::<Claims>(&header_str[7..], &DecodingKey::from_secret("super-secret-key".as_ref()), &Validation::new(Algorithm::HS256)) {
             Ok(_data) => ready(Ok(AuthToken)),
             _ => ready(Err(ErrorUnauthorized("Invalid token")))
         }
