@@ -59,7 +59,10 @@ impl Hub for MainHub {
     }
 
     async fn is_valid(&self) -> bool {
-        self.connection.is_some() && self.connection.clone().unwrap().valid().await // todo remove useless clones for BluetoothConnection
+        if let Some(value) = self.connection.clone() {
+            return value.valid().await;
+        }
+        return false;
     }
 
     fn get_name(&self) -> &str {

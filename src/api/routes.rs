@@ -31,13 +31,19 @@ pub struct DeviceControlRequest {
 #[post("/api/control_device")]
 async fn control_device(_auth: AuthToken, req: Json<DeviceControlRequest>) -> impl Responder {
     let device = search_device(req.device_id.clone()).await;
-    access_hub(device, &req.data).await.unwrap();
-
-    HttpResponse::Ok().json(json! {
-        {
-            "status": "ok"
-        }
-    })
+    match access_hub(device, &req.data).await {
+        Ok(_) => HttpResponse::Ok().json(json! {
+            {
+                "status": "ok"
+            }
+        }),
+        Err(e) => HttpResponse::InternalServerError().json(json! {
+            {
+                "status": "error",
+                "error": e.to_string()
+            }
+        })
+    }
 }
 
 #[get("/login")]
