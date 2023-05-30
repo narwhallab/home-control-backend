@@ -30,9 +30,10 @@ async fn main() -> std::io::Result<()> {
             .service(routes::list_devices)
             .service(routes::server_info)
             .service(routes::control_device)
+            .service(routes::fetch_info)
             .service(routes::client_login)
             .service(routes::client_home)
-            .service(components::led::test)
+            .service(components::dist_checker::test)
             .service(actix_files::Files::new("/", "./build"))
     })
     .bind(("0.0.0.0", 8080))?

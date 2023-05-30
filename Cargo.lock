@@ -873,6 +873,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "dyn-clone",
+ "futures",
  "gethostname",
  "jsonwebtoken",
  "lazy_static",
@@ -881,6 +882,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "tokio",
 ]
 
 [[package]]
@@ -1109,8 +1111,6 @@ dependencies = [
 [[package]]
 name = "narwhal-tooth"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "788d18cee14af0f58bf5e8f56f2cc2d5e95c91d4d93b98081c2038dd4ad022e0"
 dependencies = [
  "async_once",
  "btleplug",
@@ -1635,9 +1635,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.28.0"
+version = "1.28.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3c786bf8134e5a3a166db9b29ab8f48134739014a3eca7bc6bfa95d673b136f"
+checksum = "94d7b1cfd2aa4011f2de74c2c4c63665e27a71006b0a192dcd2710272e73dfa2"
 dependencies = [
  "autocfg",
  "bytes",

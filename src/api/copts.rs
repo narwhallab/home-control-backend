@@ -32,6 +32,16 @@ impl ControlOptions {
             range_max: range.1
         }
     }
+
+    pub fn new_read(name: &str) -> ControlOptions {
+        ControlOptions {
+            name: name.to_string(),
+            opt_type: "read".to_string(),
+            values: vec![],
+            range_min: 0.0,
+            range_max: 0.0
+        }
+    }
 }
 
 pub fn validate_control_data(control_options: Vec<ControlOptions>, data: &HashMap<String, String>) -> Result<()> {
