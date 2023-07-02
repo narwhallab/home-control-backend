@@ -1,11 +1,29 @@
 use std::{collections::HashMap, path::PathBuf};
 
 use actix_web::{Responder, get, HttpResponse, post, web::Json, HttpRequest};
+use serde::Deserialize;
 use serde_json::json;
 
-use crate::{DEVICES, HOSTNAME, api::{device::{search_device, access_hub, DeviceType, read_hub}, verifier::CookieToken}};
+use crate::{DEVICES, HOSTNAME, api::{device::{search_device, access_hub, DeviceType, read_hub, Device}, verifier::CookieToken}};
 
 use super::verifier::AuthToken;
+
+#[derive(Deserialize)]
+pub struct CreateDeviceRequest {
+    pub device: Device,
+    pub bluetooth: String // Bluetooth ID
+}
+
+// TODO
+// #[post("/api/create_device")]
+// async fn create_device(req: Json<CreateDeviceRequest>) -> impl Responder {
+//     register_device(req.device.clone(), req.bluetooth.clone());
+//     HttpResponse::Ok().json(json! {
+//         {
+//             "status": "ok"
+//         }
+//     })
+// }
 
 #[get("/api/list_devices")]
 async fn list_devices() -> impl Responder {

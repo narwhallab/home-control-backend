@@ -2,14 +2,14 @@ use std::collections::HashMap;
 use anyhow::Result;
 use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct ControlOptions {
-    name: String,
+    pub name: String,
     #[serde(rename = "type")]
-    opt_type: String,
-    values: Vec<String>,    // if picker
-    range_min: f32,   // if range
-    range_max: f32
+    pub opt_type: String,
+    pub values: Vec<String>,    // if picker
+    pub range_min: f32,   // if range
+    pub range_max: f32
 }
 
 impl ControlOptions {

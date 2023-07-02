@@ -27,7 +27,7 @@ pub trait Hub: Sync + Send + DynClone {
     fn get_devices(&self) -> Vec<Device>;
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, PartialEq)]
 pub struct Device {
     pub id: String,
     pub dev_type: DeviceType,
