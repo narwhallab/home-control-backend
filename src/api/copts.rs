@@ -33,6 +33,16 @@ impl ControlOptions {
         }
     }
 
+    pub fn new_input(name: &str) -> ControlOptions {
+        ControlOptions {
+            name: name.to_string(),
+            opt_type: "input".to_string(),
+            values: vec![],
+            range_min: 0.0,
+            range_max: 0.0
+        }
+    }
+
     pub fn new_read(name: &str) -> ControlOptions {
         ControlOptions {
             name: name.to_string(),
@@ -62,6 +72,8 @@ pub fn validate_control_data(control_options: Vec<ControlOptions>, data: &HashMa
             if res < opt.range_min || res > opt.range_max { // out of the given range
                 return Err(anyhow::anyhow!("Invalid value: out of range"))
             }
+        } else if opt.opt_type == "input" { // this type is input
+            // good
         }
     }
 
