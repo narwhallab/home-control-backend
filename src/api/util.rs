@@ -14,7 +14,7 @@ pub  fn parse_cookies<'a>(raw: &'a str) -> HashMap<&'a str, &'a str> {
         if cookie_parts.len() != 2 {
             return None;
         }
-        return Some((cookie_parts[0], cookie_parts[1]))
+        return Some((cookie_parts[0].trim(), cookie_parts[1].trim()))
     }).filter(|x| x.is_some())
     .map(|x| x.unwrap())
     .collect()
