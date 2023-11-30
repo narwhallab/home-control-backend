@@ -48,6 +48,7 @@ impl FromRequest for CookieToken {
         }
         
         let header_str = cookie_header.unwrap().to_str().unwrap();
+
         let cookies = parse_cookies(header_str);
 
         if !cookies.contains_key("access_key") {
@@ -93,7 +94,6 @@ pub async fn login(req: Form<LoginRequest>) -> impl Responder {
         &Header::default(), 
         &claims, 
         &EncodingKey::from_secret("super-secret-key".as_ref())).unwrap();
-
 
     HttpResponse::Found()
         .append_header(("Set-Cookie", format!("access_key={}", token)))

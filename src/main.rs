@@ -2,7 +2,7 @@ mod api;
 mod components;
 
 use std::{collections::HashMap, sync::Mutex};
-use actix_web::{App, HttpServer};
+use actix_web::{App, HttpServer, middleware::Logger};
 use api::{device::{load, Hub, Device, DeviceType}, verifier, routes, dynamic::DynamicDevice, copts::ControlOptions};
 use components::mainhub::MainHub;
 use dotenv_codegen::dotenv;
@@ -18,7 +18,7 @@ lazy_static! {
 /// Add your devices here
 async fn load_hubs() {
     load(Box::new(MainHub::new().await));
-    add_dynamic();
+    // todo: add_dynamic();
 }
 
 fn add_dynamic() {
@@ -33,7 +33,7 @@ fn add_dynamic() {
                 ControlOptions::new_range("power", (0.0, 100.0))
             ] },
         bluetooth: String::from(""), // TODO add bluetooth id for test
-        handlers: HashMap::from([(String::from("power"), String::from("led:{power}"))])
+        handlers: HashMap::from([(String::from("power"), String::from("led:{{{power}}}"))])
     };
 
     let hub = dyn_device.generate_hub();
@@ -46,8 +46,11 @@ fn add_dynamic() {
 async fn main() -> std::io::Result<()> {
     load_hubs().await;
 
+    println!("Server Started");
+
     HttpServer::new(move || {
         App::new()
+            .wrap(Logger::default())
             .service(verifier::login)
             .service(routes::list_devices)
             .service(routes::server_info)

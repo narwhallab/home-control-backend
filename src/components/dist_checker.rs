@@ -18,5 +18,5 @@ pub fn new_dist_checker() -> Device {
 pub async fn test(_auth: AuthToken) -> impl Responder {
     let device = new_dist_checker();
     let data = read_hub(device).await.unwrap();
-    data
+    serde_json::to_string(&data)
 }

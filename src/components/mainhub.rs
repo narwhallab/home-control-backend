@@ -1,19 +1,9 @@
-use std::{collections::HashMap, error::Error, sync::Mutex};
-use narwhal_tooth::{scan_bluetooth, bluetooth::{BluetoothConnection, connect_peripheral}};
-use crate::api::device::{Device, Hub};
+use std::{collections::HashMap, error::Error, time::Duration};
+use log::warn;
+use narwhal_tooth::{scan::scan_bluetooth, bluetooth::BluetoothConnection, util::connect_device};
+use crate::api::device::{Device, Hub, DeviceType};
 
 use super::{led::new_led_device, dist_checker::new_dist_checker};
-
-lazy_static::lazy_static! {
-    pub static ref EVENT_POOL: Mutex<Vec<(String, Vec<u8>)>> = Mutex::new(vec![]);
-}
-
-pub fn pull() -> Vec<(String, Vec<u8>)> {
-    let mut buffer = EVENT_POOL.lock().unwrap();
-    let cloned = buffer.clone();
-    *buffer = vec![];
-    return cloned;
-}
 
 #[derive(Clone)]
 pub struct MainHub {
@@ -23,21 +13,11 @@ pub struct MainHub {
 
 impl MainHub {
     pub async fn reconnect() -> Option<BluetoothConnection> {
-        async {
-            let scan_results = scan_bluetooth(3).await;
-            let hub_device = scan_results.get_by_name("HMSoft").await.ok_or("Couldn't find HMSoft device")?;
-            let opt_conn = connect_peripheral(&hub_device).await;
+        let scan_results = scan_bluetooth(Duration::from_secs(3)).await;
+        let hub_device = scan_results.search_by_name("HMSoft".to_string()).await.expect("Couldn't find bluetooth device");
+        let connection_result = connect_device(hub_device.clone()).await;
 
-            if let Ok(conn) = &opt_conn {
-                futures::executor::block_on(async {
-                    conn.subscribe(|v| {
-                        EVENT_POOL.lock().unwrap().push(v);
-                    }).await.unwrap();
-                });
-            }
-
-            opt_conn
-        }.await.ok()
+        connection_result.ok()
     }
 
     pub async fn new() -> Self {
@@ -53,54 +33,60 @@ impl MainHub {
 #[async_trait::async_trait]
 impl Hub for MainHub {
     async fn apply(&mut self, target: Device, data: &HashMap<String, String>) -> Result<(), Box<dyn Error>> {
-        let connection = if !self.is_valid().await {
-            Self::reconnect().await
-        } else {
-            self.connection.clone()
-        }.ok_or("Invalid connection")?;
+        if !self.is_valid().await {
+            return Err("Device isn't connected".into());
+        }
 
-        self.connection = Some(connection.clone());
+        if target.dev_type != DeviceType::COMMANDABLE {
+            return Err("Only Commandable Devices can run this function".into());
+        }
 
-        if target.id == "287a47cc-f0fa-4575-948a-ffec1e1c7c7b" {
-            if let Some(data) = data.get("status") {
-                connection.write(data.as_bytes()).await?;
+        for opt in target.ctrl_opts.iter() {
+            if let Some(data) = data.get(&opt.name) {
+                let _result = self.connection.clone().unwrap().send(data.as_bytes()).await?; // todo: maybe the result will be useful??
             }
         }
 
         Ok(())
     }
 
-    async fn retreive(&mut self, target: Device) -> Result<String, Box<dyn Error>> {
-        let connection = if !self.is_valid().await {
-            Self::reconnect().await
-        } else {
-            self.connection.clone()
-        }.ok_or("Invalid connection")?;
-
-        self.connection = Some(connection.clone());
-
-        if target.id == "718b88cf-5df5-418f-aa19-3815cfcdde05" {
-            connection.write("request".as_bytes()).await?;
+    async fn retreive(&mut self, target: Device) -> Result<HashMap<String, String>, Box<dyn Error>> {
+        if !self.is_valid().await {
+            return Err("Device isn't connected".into());
         }
-        let vec = pull();
-        if let Some(data) = vec.first() {
-            return Ok(String::from_utf8(data.1.clone()).unwrap());
+
+        if target.dev_type != DeviceType::READABLE {
+            return Err("Only Commandable Devices can run this function".into());
         }
-        Ok("".to_string())
+
+        let mut map: HashMap<String, String> = HashMap::new();
+
+        for opt in target.ctrl_opts.iter() {
+            if opt.opt_type == "read" {
+                let result = self.connection.clone().unwrap().send("".as_bytes()).await;
+                
+                if let Ok(response) = result {
+                    map.insert(opt.name.clone(), response);
+                }
+            }
+        }
+
+        Ok(map)
     }
 
-    async fn finish(&self) -> Result<(), Box<dyn Error>> {
-        if self.connection.is_none() {
-            return Ok(());
-        }
-        self.connection.clone().unwrap().disconnect().await.unwrap();
+    async fn finish(&self) {
+        if let Some(connection) = self.connection.clone() {
+            let result = connection.disconnect().await;
 
-        Ok(())
+            if let Err(err) = result {
+                warn!("Error while disconnecting: {}", err);
+            }
+        }
     }
 
     async fn is_valid(&self) -> bool {
-        if let Some(value) = self.connection.clone() {
-            return value.peripheral_connected().await;
+        if let Some(connection) = self.connection.clone() {
+            return connection.check_alive().await;
         }
         return false;
     }

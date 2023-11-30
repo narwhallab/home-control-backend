@@ -1,22 +1,10 @@
-use std::{error::Error, collections::HashMap, fs::File, io::{BufReader, BufWriter}, sync::Mutex};
+use std::{error::Error, collections::HashMap, fs::File, io::{BufReader, BufWriter}, time::Duration};
 
-use narwhal_tooth::{bluetooth::{BluetoothConnection, connect_peripheral}, scan_bluetooth};
+use log::warn;
+use narwhal_tooth::{bluetooth::BluetoothConnection, scan::scan_bluetooth, util::connect_device};
 use serde::{Serialize, Deserialize};
 
 use super::device::{Device, Hub, DeviceType};
-
-lazy_static::lazy_static! {
-    pub static ref EVENT_POOL: Mutex<HashMap<String, Vec<(String, Vec<u8>)>>> = Mutex::new(HashMap::new());
-}
-
-// hashmap of bluetooth, vector of (data uuid, data)
-pub fn pull() -> HashMap<String, Vec<(String, Vec<u8>)>> {
-    let mut buffer = EVENT_POOL.lock().unwrap();
-    let cloned = buffer.clone();
-    *buffer = HashMap::new();
-    return cloned;
-}
-
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct DynamicDevice {
@@ -62,22 +50,11 @@ pub struct DynamicHub {
 
 impl DynamicHub {
     pub async fn reconnect(device: &DynamicDevice) -> Option<BluetoothConnection> {
-        async {
-            let scan_results = scan_bluetooth(3).await;
-            let hub_device = scan_results.get_by_addr(&device.bluetooth).await.ok_or("Couldn't find bluetooth device")?;
-            let opt_conn = connect_peripheral(&hub_device).await;
+        let scan_results = scan_bluetooth(Duration::from_secs(3)).await;
+        let hub_device = scan_results.search_by_addr(device.bluetooth.clone()).await.expect("Couldn't find bluetooth device");
+        let connection_result = connect_device(hub_device.clone()).await;
 
-            if let Ok(conn) = &opt_conn {
-                futures::executor::block_on(async {
-                    let cloned = device.clone();
-                    conn.subscribe(move |v: (String, Vec<u8>)| {
-                        EVENT_POOL.lock().unwrap().get_mut(&cloned.bluetooth.clone()).unwrap().push(v);
-                    }).await.unwrap();
-                });
-            }
-
-            opt_conn
-        }.await.ok()
+        connection_result.ok()
     }
 
     pub async fn new(device: DynamicDevice) -> Self {
@@ -93,62 +70,63 @@ impl DynamicHub {
 #[async_trait::async_trait]
 impl Hub for DynamicHub {
     async fn apply(&mut self, target: Device, data: &HashMap<String, String>) -> Result<(), Box<dyn Error>> {
-        let connection = if !self.is_valid().await {
-            Self::reconnect(&self.device).await
-        } else {
-            self.connection.clone()
-        }.ok_or("Invalid connection")?;
+        if !self.is_valid().await {
+            return Err("Device isn't connected".into());
+        }
 
-        self.connection = Some(connection.clone());
+        if target.dev_type != DeviceType::COMMANDABLE {
+            return Err("Only Commandable Devices can run this function".into());
+        }
 
-        if target.dev_type == DeviceType::COMMANDABLE {
-            for opt in target.ctrl_opts.iter() {
-                if let Some(template) = self.device.handlers.get(&opt.name) {
-                    if let Some(data) = data.get(&opt.name) {
-                        let command = template.replace(format!("{{{}}}", opt.name).as_str(), data);
-                        connection.write(command.as_bytes()).await?;
-                    }
+        for opt in target.ctrl_opts.iter() {
+            if let Some(template) = self.device.handlers.get(&opt.name) {
+                if let Some(data) = data.get(&opt.name) {
+                    let command = template.replace(format!("{{{}}}", opt.name).as_str(), data);
+                    let _result = self.connection.clone().unwrap().send(command.as_bytes()).await?; // todo: maybe the result will be useful??
                 }
-
             }
         }
 
         Ok(())
     }
 
-    async fn retreive(&mut self, _target: Device) -> Result<String, Box<dyn Error>> {
-        let connection = if !self.is_valid().await {
-            Self::reconnect(&self.device).await
-        } else {
-            self.connection.clone()
-        }.ok_or("Invalid connection")?;
+    async fn retreive(&mut self, target: Device) -> Result<HashMap<String, String>, Box<dyn Error>> {
+        if !self.is_valid().await {
+            return Err("Device isn't connected".into());
+        }
 
-        self.connection = Some(connection.clone());
+        if target.dev_type != DeviceType::READABLE {
+            return Err("Only Commandable Devices can run this function".into());
+        }
 
-        connection.write("request".as_bytes()).await?;
+        let mut map: HashMap<String, String> = HashMap::new();
 
-        // TODO something's weird
-        let map = pull();
-        if let Some(vec) = map.get(&self.device.bluetooth) {
-            if let Some(data) = vec.first() {
-                return Ok(String::from_utf8(data.1.clone()).unwrap());
+        for opt in target.ctrl_opts.iter() {
+            if opt.opt_type == "read" {
+                let result = self.connection.clone().unwrap().send("".as_bytes()).await;
+                
+                if let Ok(response) = result {
+                    map.insert(opt.name.clone(), response);
+                }
             }
         }
-        Ok("".to_string())
+
+        Ok(map)
     }
 
-    async fn finish(&self) -> Result<(), Box<dyn Error>> {
-        if self.connection.is_none() {
-            return Ok(());
-        }
-        self.connection.clone().unwrap().disconnect().await.unwrap();
+    async fn finish(&self) {
+        if let Some(connection) = self.connection.clone() {
+            let result = connection.disconnect().await;
 
-        Ok(())
+            if let Err(err) = result {
+                warn!("Error while disconnecting: {}", err);
+            }
+        }
     }
 
     async fn is_valid(&self) -> bool {
-        if let Some(value) = self.connection.clone() {
-            return value.peripheral_connected().await;
+        if let Some(connection) = self.connection.clone() {
+            return connection.check_alive().await;
         }
         return false;
     }

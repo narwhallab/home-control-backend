@@ -14,9 +14,9 @@ pub enum DeviceType {
 pub trait Hub: Sync + Send + DynClone {
     async fn apply(&mut self, target: Device, data: &HashMap<String, String>) -> Result<(), Box<dyn Error>>;
 
-    async fn retreive(&mut self, target: Device) -> Result<String, Box<dyn Error>>;
+    async fn retreive(&mut self, target: Device) -> Result<HashMap<String, String>, Box<dyn Error>>;
 
-    async fn finish(&self) -> Result<(), Box<dyn Error>>;
+    async fn finish(&self);
 
     async fn is_valid(&self) -> bool;
 
@@ -56,7 +56,7 @@ pub(crate) async fn access_hub(device: Device, data: &HashMap<String, String>) -
     Err("Couldn't find device".into())
 }
 
-pub(crate) async fn read_hub(device: Device) -> Result<String, Box<dyn Error>> {
+pub(crate) async fn read_hub(device: Device) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut hubs = HUBS.lock().unwrap();
     for hub in hubs.iter_mut() {
         for hub_device in hub.get_devices() {
