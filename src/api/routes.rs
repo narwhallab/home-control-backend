@@ -84,7 +84,7 @@ async fn fetch_info(_auth: AuthToken, req: Json<DeviceFetchInfoRequest>) -> impl
         return HttpResponse::BadRequest().json(json! {
             {
                 "status": "error",
-                "error": "device is not commandable"
+                "error": "device is not readable"
             }
         })
     }
