@@ -1,3 +1,2 @@
-pub mod led;
 pub mod mainhub;
-pub mod dist_checker;
+pub mod mainhub_devices;

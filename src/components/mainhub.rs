@@ -3,7 +3,7 @@ use log::warn;
 use narwhal_tooth::{scan::scan_bluetooth, bluetooth::BluetoothConnection, util::connect_device};
 use crate::api::{device::{Device, Hub, DeviceType}, copts::ControllerType};
 
-use super::{led::new_led_device, dist_checker::new_dist_checker};
+use super::mainhub_devices::{new_dist_checker, new_led_device};
 
 #[derive(Clone)]
 pub struct MainHub {
