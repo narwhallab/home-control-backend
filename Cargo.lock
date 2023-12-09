@@ -899,7 +899,6 @@ dependencies = [
  "actix-web",
  "anyhow",
  "async-trait",
- "bytes",
  "dotenv",
  "dotenv_codegen",
  "dyn-clone",
