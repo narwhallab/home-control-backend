@@ -29,11 +29,6 @@ pub struct DeviceControlRequest {
     pub data: HashMap<String, String>
 }
 
-#[derive(Deserialize)]
-pub struct DeviceFetchInfoRequest {
-    pub device_id: String
-}
-
 #[post("/api/control_device")]
 async fn control_device(_auth: AuthToken, req: Json<DeviceControlRequest>) -> impl Responder {
     let device = search_device(req.device_id.clone()).await;
@@ -61,6 +56,11 @@ async fn control_device(_auth: AuthToken, req: Json<DeviceControlRequest>) -> im
             "status": "error"
         }
     })
+}
+
+#[derive(Deserialize)]
+pub struct DeviceFetchInfoRequest {
+    pub device_id: String
 }
 
 #[post("/api/fetch_info")]
