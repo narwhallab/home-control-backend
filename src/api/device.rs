@@ -2,7 +2,7 @@ use std::{collections::HashMap, error::Error};
 
 use dyn_clone::DynClone;
 use serde::{Serialize, Deserialize};
-use crate::{DEVICES, api::copts::ControlOptions, HUBS};
+use crate::{DEVICES, api::control_options::ControlOptions, HUBS};
 
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Debug)]
 pub enum DeviceType {

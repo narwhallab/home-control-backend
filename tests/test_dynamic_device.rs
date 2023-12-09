@@ -1,6 +1,6 @@
 use std::{collections::HashMap, io::{BufWriter, BufReader}, fs::File};
 
-use home_control_backend::api::{dynamic::DynamicDevice, device::{Device, DeviceType}, copts::ControlOptions};
+use home_control_backend::api::{dynamic::DynamicDevice, device::{Device, DeviceType}, control_options::ControlOptions};
 
 fn sample_device() -> DynamicDevice {
     DynamicDevice {

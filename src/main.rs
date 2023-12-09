@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use actix_web::{App, HttpServer, middleware::Logger};
-use home_control_backend::api::{device::{load_hub_and_devices, Device, DeviceType}, dynamic::DynamicDevice, copts::ControlOptions};
+use home_control_backend::api::{device::{load_hub_and_devices, Device, DeviceType}, dynamic::DynamicDevice, control_options::ControlOptions};
 use home_control_backend::components::mainhub::MainHub;
 use home_control_backend::web::{routes, verifier};
 

@@ -1,4 +1,4 @@
-use crate::api::{device::{Device, DeviceType}, copts::ControlOptions};
+use crate::api::{device::{Device, DeviceType}, control_options::ControlOptions};
 
 pub fn new_led_device() -> Device {
     Device {

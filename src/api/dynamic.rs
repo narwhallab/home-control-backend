@@ -4,7 +4,7 @@ use log::warn;
 use narwhal_tooth::{bluetooth::BluetoothConnection, scan::scan_bluetooth, util::connect_device};
 use serde::{Serialize, Deserialize};
 
-use super::{device::{Device, Hub, DeviceType}, copts::ControllerType};
+use super::{device::{Device, Hub, DeviceType}, control_options::ControllerType};
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct DynamicDevice {
