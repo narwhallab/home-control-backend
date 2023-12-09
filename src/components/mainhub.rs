@@ -1,7 +1,7 @@
 use std::{collections::HashMap, error::Error, time::Duration};
 use log::warn;
 use narwhal_tooth::{scan::scan_bluetooth, bluetooth::BluetoothConnection, util::connect_device};
-use crate::api::{device::{Device, Hub, DeviceType}, control_options::ControllerType};
+use crate::api::{device::{Device, DeviceType}, hub::Hub, control_options::ControllerType};
 
 use super::mainhub_devices::{new_dist_checker, new_led_device};
 

@@ -4,7 +4,7 @@ use actix_web::{Responder, get, HttpResponse, post, web::Json, HttpRequest};
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::{DEVICES, HOSTNAME, api::{device::{search_device, access_hub, DeviceType, read_hub}, control_options::validate_control_data}};
+use crate::{DEVICES, HOSTNAME, api::{device::{search_device, DeviceType}, hub::{access_hub, read_hub}, control_options::validate_control_data}};
 
 use super::verifier::{AuthToken, CookieToken};
 

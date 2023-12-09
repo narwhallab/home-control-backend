@@ -8,7 +8,7 @@ use dotenv_codegen::dotenv;
 use lazy_static::lazy_static;
 use tokio::sync::Mutex;
 
-use crate::api::device::{Hub, Device};
+use crate::api::{device::Device, hub::Hub};
 
 
 const PASSWORD: &str = dotenv!("HASHED_PASSWORD");
