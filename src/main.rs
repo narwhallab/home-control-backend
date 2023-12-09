@@ -3,7 +3,7 @@ mod components;
 
 use std::collections::HashMap;
 use actix_web::{App, HttpServer, middleware::Logger};
-use api::{device::{load_hub, Hub, Device, DeviceType}, verifier, routes, dynamic::DynamicDevice, copts::ControlOptions};
+use api::{device::{load_hub_and_devices, Hub, Device, DeviceType}, verifier, routes, dynamic::DynamicDevice, copts::ControlOptions};
 use components::mainhub::MainHub;
 use dotenv_codegen::dotenv;
 use lazy_static::lazy_static;
@@ -18,7 +18,7 @@ lazy_static! {
 }
 
 async fn load_hubs() {
-    load_hub(Box::new(MainHub::new().await)).await; // todo: solve multiple hubs pointing to the same peripheral
+    load_hub_and_devices(Box::new(MainHub::new().await)).await; // todo: solve multiple hubs pointing to the same peripheral
     dynamic_led_hub().await;
 }
 
@@ -39,7 +39,7 @@ async fn dynamic_led_hub() {
 
     let dyn_hub = dyn_device.generate_hub().await;
 
-    load_hub(Box::new(dyn_hub)).await;
+    load_hub_and_devices(Box::new(dyn_hub)).await;
 }
 
 #[actix_web::main]
