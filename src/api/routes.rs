@@ -27,7 +27,7 @@ pub struct CreateDeviceRequest {
 
 #[get("/api/list_devices")]
 async fn list_devices() -> impl Responder {
-    HttpResponse::Ok().json(DEVICES.lock().unwrap().clone())
+    HttpResponse::Ok().json(DEVICES.lock().await.clone())
 }
 
 #[get("/api/server_info")]
@@ -117,6 +117,16 @@ async fn client_login(cookie: CookieToken, req: HttpRequest) -> impl Responder {
 
 #[get("/")]
 async fn client_home(cookie: CookieToken, req: HttpRequest) -> impl Responder {
+    if cookie.authorized {
+        let frontend_path = PathBuf::from("./build/index.html");
+        actix_files::NamedFile::open(frontend_path).unwrap().into_response(&req)
+    } else {
+        HttpResponse::PermanentRedirect().append_header(("Location", "/login")).finish()
+    }
+}
+
+#[get("/devices")]
+async fn devices(cookie: CookieToken, req: HttpRequest) -> impl Responder {
     if cookie.authorized {
         let frontend_path = PathBuf::from("./build/index.html");
         actix_files::NamedFile::open(frontend_path).unwrap().into_response(&req)

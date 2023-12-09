@@ -13,11 +13,13 @@ pub struct MainHub {
 
 impl MainHub {
     pub async fn reconnect() -> Option<BluetoothConnection> {
-        let scan_results = scan_bluetooth(Duration::from_secs(3)).await;
-        let hub_device = scan_results.search_by_name("HMSoft".to_string()).await.expect("Couldn't find bluetooth device");
-        let connection_result = connect_device(hub_device.clone()).await;
+        {
+            let scan_results = scan_bluetooth(Duration::from_secs(3)).await;
+            let hub_device = scan_results.search_by_name("HMSoft".to_string()).await?;
+            let connection_result = connect_device(hub_device.clone()).await;
 
-        connection_result.ok()
+            connection_result
+        }.ok()
     }
 
     pub async fn new() -> Self {

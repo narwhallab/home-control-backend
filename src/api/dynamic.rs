@@ -3,6 +3,7 @@ use std::{error::Error, collections::HashMap, fs::File, io::{BufReader, BufWrite
 use log::warn;
 use narwhal_tooth::{bluetooth::BluetoothConnection, scan::scan_bluetooth, util::connect_device};
 use serde::{Serialize, Deserialize};
+use tokio::runtime::Handle;
 
 use super::device::{Device, Hub, DeviceType};
 
@@ -29,10 +30,8 @@ impl DynamicDevice {
         serde_json::to_writer(write_buf, self).unwrap();
     }
 
-    pub fn generate_hub(&self) -> DynamicHub {
-        futures::executor::block_on(async {
-            DynamicHub::new(self.clone()).await
-        })
+    pub async fn generate_hub(&self) -> DynamicHub {
+        DynamicHub::new(self.clone()).await
     }
 }
 
@@ -50,11 +49,13 @@ pub struct DynamicHub {
 
 impl DynamicHub {
     pub async fn reconnect(device: &DynamicDevice) -> Option<BluetoothConnection> {
-        let scan_results = scan_bluetooth(Duration::from_secs(3)).await;
-        let hub_device = scan_results.search_by_addr(device.bluetooth.clone()).await.expect("Couldn't find bluetooth device");
-        let connection_result = connect_device(hub_device.clone()).await;
+        {
+            let scan_results = scan_bluetooth(Duration::from_secs(3)).await;
+            let hub_device = scan_results.search_by_addr(device.bluetooth.clone()).await?;
+            let connection_result = connect_device(hub_device.clone()).await;
 
-        connection_result.ok()
+            connection_result
+        }.ok()
     }
 
     pub async fn new(device: DynamicDevice) -> Self {

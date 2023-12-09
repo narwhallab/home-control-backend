@@ -38,12 +38,12 @@ pub struct Device {
 }
 
 pub async fn search_device(uuid: String) -> Device {
-    let devices = DEVICES.lock().unwrap();
+    let devices = DEVICES.lock().await;
     devices.get(&uuid).unwrap().clone()
 }
 
 pub(crate) async fn access_hub(device: Device, data: &HashMap<String, String>) -> Result<(), Box<dyn Error>> {
-    let mut hubs = HUBS.lock().unwrap();
+    let mut hubs = HUBS.lock().await;
     for hub in hubs.iter_mut() {
         for hub_device in hub.get_devices() {
             if &hub_device.id == &device.id {
@@ -57,7 +57,7 @@ pub(crate) async fn access_hub(device: Device, data: &HashMap<String, String>) -
 }
 
 pub(crate) async fn read_hub(device: Device) -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let mut hubs = HUBS.lock().unwrap();
+    let mut hubs = HUBS.lock().await;
     for hub in hubs.iter_mut() {
         for hub_device in hub.get_devices() {
             if &hub_device.id == &device.id {
@@ -70,9 +70,9 @@ pub(crate) async fn read_hub(device: Device) -> Result<HashMap<String, String>, 
     Err("Couldn't find device".into())
 }
 
-pub(crate) fn load(hub: Box<dyn Hub>) {
+pub(crate) async fn load_hub(hub: Box<dyn Hub>) {
     for device in &hub.get_devices() {
-        DEVICES.lock().unwrap().insert(device.id.clone(), device.clone());
+        DEVICES.lock().await.insert(device.id.clone(), device.clone());
     }
-    HUBS.lock().unwrap().push(hub);
+    HUBS.lock().await.push(hub);
 }
