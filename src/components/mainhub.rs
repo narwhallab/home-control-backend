@@ -58,7 +58,7 @@ impl Hub for MainHub {
         }
 
         if target.dev_type != DeviceType::Readable {
-            return Err("Only Commandable Devices can run this function".into());
+            return Err("Only Readable Devices can run this function".into());
         }
 
         let mut map: HashMap<String, String> = HashMap::new();
