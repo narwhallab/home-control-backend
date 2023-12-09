@@ -43,6 +43,8 @@ impl Hub for MainHub {
             return Err("Only Commandable Devices can run this function".into());
         }
 
+        // todo: add methods manually for each device
+
         for opt in target.ctrl_opts.iter() {
             if let Some(data) = data.get(&opt.name) {
                 let _result = self.connection.clone().unwrap().send(data.as_bytes()).await?; // todo: maybe the result will be useful??
@@ -98,7 +100,7 @@ impl Hub for MainHub {
     }
 
     fn get_desc(&self) -> &str {
-        "방 불을 켜거나 끕니다"
+        "MainHub"
     }
 
     fn get_devices(&self) -> Vec<Device> {
