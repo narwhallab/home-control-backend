@@ -23,8 +23,7 @@ impl FromRequest for AuthToken {
             return ready(Err(ErrorUnauthorized("No authorization header")));
         }
         
-
-        // todo fix bearer, Bearer, ... caps
+        // todo fix bearer, Bearer, ... (caps)
         let header_str = auth_header.unwrap().to_str().unwrap();
         if header_str[..=6].to_lowercase() != "bearer " {
             return ready(Err(ErrorUnauthorized("Invalid authorization header")));

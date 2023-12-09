@@ -4,26 +4,9 @@ use actix_web::{Responder, get, HttpResponse, post, web::Json, HttpRequest};
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::{DEVICES, HOSTNAME, api::{device::{search_device, access_hub, DeviceType, read_hub, Device}, verifier::CookieToken, copts::validate_control_data}};
+use crate::{DEVICES, HOSTNAME, api::{device::{search_device, access_hub, DeviceType, read_hub}, copts::validate_control_data}};
 
-use super::verifier::AuthToken;
-
-#[derive(Deserialize)]
-pub struct CreateDeviceRequest {
-    pub device: Device,
-    pub bluetooth: String // Bluetooth ID
-}
-
-// TODO
-// #[post("/api/create_device")]
-// async fn create_device(req: Json<CreateDeviceRequest>) -> impl Responder {
-//     register_device(req.device.clone(), req.bluetooth.clone());
-//     HttpResponse::Ok().json(json! {
-//         {
-//             "status": "ok"
-//         }
-//     })
-// }
+use super::verifier::{AuthToken, CookieToken};
 
 #[get("/api/list_devices")]
 async fn list_devices() -> impl Responder {
@@ -40,13 +23,13 @@ async fn server_info() -> impl Responder {
     })
 }
 
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 pub struct DeviceControlRequest {
     pub device_id: String,
     pub data: HashMap<String, String>
 }
 
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 pub struct DeviceFetchInfoRequest {
     pub device_id: String
 }
