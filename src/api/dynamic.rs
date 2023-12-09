@@ -3,9 +3,8 @@ use std::{error::Error, collections::HashMap, fs::File, io::{BufReader, BufWrite
 use log::warn;
 use narwhal_tooth::{bluetooth::BluetoothConnection, scan::scan_bluetooth, util::connect_device};
 use serde::{Serialize, Deserialize};
-use tokio::runtime::Handle;
 
-use super::device::{Device, Hub, DeviceType};
+use super::{device::{Device, Hub, DeviceType}, copts::ControllerType};
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct DynamicDevice {
@@ -34,12 +33,6 @@ impl DynamicDevice {
         DynamicHub::new(self.clone()).await
     }
 }
-
-// TODO: implement
-// pub fn register_device(device: Device, bluetooth: String) {
-
-//     todo!()
-// }
 
 #[derive(Clone)]
 pub struct DynamicHub {
@@ -103,8 +96,8 @@ impl Hub for DynamicHub {
         let mut map: HashMap<String, String> = HashMap::new();
 
         for opt in target.ctrl_opts.iter() {
-            if opt.opt_type == "read" {
-                let result = self.connection.clone().unwrap().send("".as_bytes()).await;
+            if opt.opt_type == ControllerType::Read {
+                let result = self.connection.clone().unwrap().send("".as_bytes()).await; // todo: don't leave this empty
                 
                 if let Ok(response) = result {
                     map.insert(opt.name.clone(), response);

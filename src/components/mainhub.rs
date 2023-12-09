@@ -1,7 +1,7 @@
 use std::{collections::HashMap, error::Error, time::Duration};
 use log::warn;
 use narwhal_tooth::{scan::scan_bluetooth, bluetooth::BluetoothConnection, util::connect_device};
-use crate::api::device::{Device, Hub, DeviceType};
+use crate::api::{device::{Device, Hub, DeviceType}, copts::ControllerType};
 
 use super::{led::new_led_device, dist_checker::new_dist_checker};
 
@@ -64,8 +64,8 @@ impl Hub for MainHub {
         let mut map: HashMap<String, String> = HashMap::new();
 
         for opt in target.ctrl_opts.iter() {
-            if opt.opt_type == "read" {
-                let result = self.connection.clone().unwrap().send("".as_bytes()).await;
+            if opt.opt_type == ControllerType::Read {
+                let result = self.connection.clone().unwrap().send("".as_bytes()).await; // todo: don't leave this empty
                 
                 if let Ok(response) = result {
                     map.insert(opt.name.clone(), response);

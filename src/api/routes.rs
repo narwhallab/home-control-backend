@@ -4,7 +4,7 @@ use actix_web::{Responder, get, HttpResponse, post, web::Json, HttpRequest};
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::{DEVICES, HOSTNAME, api::{device::{search_device, access_hub, DeviceType, read_hub, Device}, verifier::CookieToken}};
+use crate::{DEVICES, HOSTNAME, api::{device::{search_device, access_hub, DeviceType, read_hub, Device}, verifier::CookieToken, copts::validate_control_data}};
 
 use super::verifier::AuthToken;
 
@@ -62,19 +62,22 @@ async fn control_device(_auth: AuthToken, req: Json<DeviceControlRequest>) -> im
             }
         })
     }
-    match access_hub(device, &req.data).await {
-        Ok(_) => HttpResponse::Ok().json(json! {
-            {
-                "status": "ok"
-            }
-        }),
-        Err(e) => HttpResponse::InternalServerError().json(json! {
-            {
-                "status": "error",
-                "error": e.to_string()
-            }
-        })
+    
+    if let Ok(_) = validate_control_data(device.ctrl_opts.clone(), &req.data) {
+        if let Ok(_) = access_hub(device, &req.data).await {
+            return HttpResponse::Ok().json(json! {
+                {
+                    "status": "ok"
+                }
+            })
+        }
     }
+
+    return HttpResponse::InternalServerError().json(json! {
+        {
+            "status": "error"
+        }
+    })
 }
 
 #[post("/api/fetch_info")]
