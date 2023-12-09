@@ -2,3 +2,4 @@
 /public
 /build
 .env
+dynamic_led_write.json

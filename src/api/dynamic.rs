@@ -1,4 +1,4 @@
-use std::{error::Error, collections::HashMap, fs::File, io::{BufReader, BufWriter}, time::Duration};
+use std::{error::Error, collections::HashMap, io::{BufReader, BufWriter, Write, Read}, time::Duration};
 
 use log::warn;
 use narwhal_tooth::{bluetooth::BluetoothConnection, scan::scan_bluetooth, util::connect_device};
@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 
 use super::{device::{Device, Hub, DeviceType}, copts::ControllerType};
 
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct DynamicDevice {
     pub device: Device,
     pub bluetooth: String,
@@ -14,19 +14,12 @@ pub struct DynamicDevice {
 }
 
 impl DynamicDevice {
-    pub fn load_device(target: String) -> DynamicDevice {
-        let file = File::open(target).unwrap();
-        let read_buf = BufReader::new(file);
-
-        let data: DynamicDevice = serde_json::from_reader(read_buf).unwrap();
-        data
+    pub fn load_device<T>(target: BufReader<T>) -> DynamicDevice where T: Read {
+        return serde_json::from_reader(target).unwrap()
     }
 
-    pub fn save_device(&self, target: String) {
-        let file = File::create(target).unwrap();
-        let write_buf = BufWriter::new(file);
-
-        serde_json::to_writer(write_buf, self).unwrap();
+    pub fn save_device<T>(&self, target: BufWriter<T>) where T: Write {
+        serde_json::to_writer_pretty(target, self).unwrap();
     }
 
     pub async fn generate_hub(&self) -> DynamicHub {
@@ -68,7 +61,7 @@ impl Hub for DynamicHub {
             return Err("Device isn't connected".into());
         }
 
-        if target.dev_type != DeviceType::COMMANDABLE {
+        if target.dev_type != DeviceType::Commandable {
             return Err("Only Commandable Devices can run this function".into());
         }
 
@@ -89,7 +82,7 @@ impl Hub for DynamicHub {
             return Err("Device isn't connected".into());
         }
 
-        if target.dev_type != DeviceType::READABLE {
+        if target.dev_type != DeviceType::Readable {
             return Err("Only Commandable Devices can run this function".into());
         }
 

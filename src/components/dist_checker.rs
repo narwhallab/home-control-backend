@@ -4,7 +4,7 @@ use crate::api::{device::{Device, DeviceType, read_hub}, verifier::AuthToken, co
 pub fn new_dist_checker() -> Device {
     Device {
         id: "718b88cf-5df5-418f-aa19-3815cfcdde05".to_string(),
-        dev_type: DeviceType::READABLE,
+        dev_type: DeviceType::Readable,
         name: "Dist Checker".to_string(),
         desc: "거리를 확인합니다".to_string(),
         img: "/lightbulb.png".to_string(),

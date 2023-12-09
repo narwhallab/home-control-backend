@@ -54,7 +54,7 @@ pub struct DeviceFetchInfoRequest {
 #[post("/api/control_device")]
 async fn control_device(_auth: AuthToken, req: Json<DeviceControlRequest>) -> impl Responder {
     let device = search_device(req.device_id.clone()).await;
-    if device.dev_type != DeviceType::COMMANDABLE {
+    if device.dev_type != DeviceType::Commandable {
         return HttpResponse::BadRequest().json(json! {
             {
                 "status": "error",
@@ -62,7 +62,7 @@ async fn control_device(_auth: AuthToken, req: Json<DeviceControlRequest>) -> im
             }
         })
     }
-    
+
     if let Ok(_) = validate_control_data(device.ctrl_opts.clone(), &req.data) {
         if let Ok(_) = access_hub(device, &req.data).await {
             return HttpResponse::Ok().json(json! {
@@ -83,7 +83,7 @@ async fn control_device(_auth: AuthToken, req: Json<DeviceControlRequest>) -> im
 #[post("/api/fetch_info")]
 async fn fetch_info(_auth: AuthToken, req: Json<DeviceFetchInfoRequest>) -> impl Responder {
     let device = search_device(req.device_id.clone()).await;
-    if device.dev_type != DeviceType::READABLE {
+    if device.dev_type != DeviceType::Readable {
         return HttpResponse::BadRequest().json(json! {
             {
                 "status": "error",

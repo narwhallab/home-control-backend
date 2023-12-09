@@ -39,7 +39,7 @@ impl Hub for MainHub {
             return Err("Device isn't connected".into());
         }
 
-        if target.dev_type != DeviceType::COMMANDABLE {
+        if target.dev_type != DeviceType::Commandable {
             return Err("Only Commandable Devices can run this function".into());
         }
 
@@ -57,7 +57,7 @@ impl Hub for MainHub {
             return Err("Device isn't connected".into());
         }
 
-        if target.dev_type != DeviceType::READABLE {
+        if target.dev_type != DeviceType::Readable {
             return Err("Only Commandable Devices can run this function".into());
         }
 

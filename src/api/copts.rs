@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub enum ControllerType {
     #[serde(rename = "picker")]
     Picker,
@@ -14,7 +14,7 @@ pub enum ControllerType {
     Read
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct ControlOptions {
     pub name: String,
     #[serde(rename = "type")]

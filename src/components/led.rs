@@ -5,7 +5,7 @@ use crate::api::{device::{Device, access_hub, DeviceType}, copts::ControlOptions
 pub fn new_led_device() -> Device {
     Device {
         id: "287a47cc-f0fa-4575-948a-ffec1e1c7c7b".to_string(),
-        dev_type: DeviceType::COMMANDABLE,
+        dev_type: DeviceType::Commandable,
         name: "LED".to_string(),
         desc: "방 불을 켜거나 끕니다".to_string(),
         img: "/lightbulb.png".to_string(),

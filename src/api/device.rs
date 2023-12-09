@@ -4,10 +4,12 @@ use dyn_clone::DynClone;
 use serde::{Serialize, Deserialize};
 use crate::{DEVICES, api::copts::ControlOptions, HUBS};
 
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Debug)]
 pub enum DeviceType {
-    READABLE,
-    COMMANDABLE
+    #[serde(rename = "readable")]
+    Readable,
+    #[serde(rename = "commandable")]
+    Commandable
 }
 
 #[async_trait::async_trait]
@@ -27,9 +29,10 @@ pub trait Hub: Sync + Send + DynClone {
     fn get_devices(&self) -> Vec<Device>;
 }
 
-#[derive(Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub struct Device {
     pub id: String,
+    #[serde(rename = "type")]
     pub dev_type: DeviceType,
     pub name: String,
     pub desc: String,
@@ -70,7 +73,7 @@ pub(crate) async fn read_hub(device: Device) -> Result<HashMap<String, String>, 
     Err("Couldn't find device".into())
 }
 
-pub(crate) async fn load_hub_and_devices(hub: Box<dyn Hub>) {
+pub async fn load_hub_and_devices(hub: Box<dyn Hub>) {
     for device in &hub.get_devices() {
         DEVICES.lock().await.insert(device.id.clone(), device.clone());
     }
